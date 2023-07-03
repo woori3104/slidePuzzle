@@ -38,9 +38,13 @@ const PuzzlePiece = styled.div<PuzzlePieceProps>`
 `;
 
 const Puzzle: React.FC = () => {
-  const [puzzleState, setPuzzleState] = useRecoilState(puzzleStateAtom);
-  const [moveCount, setMoveCount] = useRecoilState(moveCountAtom);
-  const [userImage, setUserImage] = useRecoilState(userImageAtom);
+  const [puzzleState, setPuzzleState] = useState([
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, null],
+  ]);
+  const [moveCount, setMoveCount] = useState(0);
+  const [userImage, setUserImage] = useState(null);
 
   const [originalPuzzleState, setOriginalPuzzleState] = useState<
     number[][] | null
@@ -61,7 +65,7 @@ const Puzzle: React.FC = () => {
   const shufflePuzzle = () => {
     const flattenedPuzzle = puzzleState.flat();
     let inversions = 0;
-
+    flattenedPuzzle[8] = null;
     // 인버전 개수 계산
     for (let i = 0; i < flattenedPuzzle.length; i++) {
       for (let j = i + 1; j < flattenedPuzzle.length; j++) {
@@ -158,6 +162,7 @@ const Puzzle: React.FC = () => {
             [7, 8, null],
           ]
         );
+        console.log({initialState})
         setPuzzleState(initialState);
         setMoveCount(0);
       };
