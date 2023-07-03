@@ -89,7 +89,7 @@ const Puzzle: React.FC = () => {
       }
 
       // 공란과 마지막 블록 교환
-      const emptyIndex = piece.find((p) => p?.image === null)?.index || -1;
+      const emptyIndex = piece.find((p) => p?.image === null || p === null)?.index || -1;
       [piece[emptyIndex], piece[flattenedPuzzle.length - 1]] = [
         piece[flattenedPuzzle.length - 1],
         piece[emptyIndex],
@@ -167,6 +167,8 @@ const Puzzle: React.FC = () => {
         setPuzzleState(initialState);
         setMoveCount(0);
 
+        setOriginalPuzzleState(initialState);
+
         setIsCompleted(false);
       };
       reader.readAsDataURL(file);
@@ -220,7 +222,7 @@ const Puzzle: React.FC = () => {
 
   const movePiece = (row: number, col: number) => {
     const { row: emptyRow, col: emptyCol } = findEmptyPiece();
-    if (isMove && canMovePiece(row, col)) {
+    if (isMove && canMovePiece(row, col) && emptyRow!==row && emptyCol!==col) {
       const newState = puzzleState.map((row) => [...row]);
       newState[emptyRow][emptyCol] = newState[row][col];
       newState[row][col] = null;
