@@ -81,20 +81,22 @@ const Puzzle: React.FC = () => {
     }));
     let inversions = 0;
 
+    let emptyIndex = piece.findIndex((p) => p?.image === undefined || p === undefined);
+    console.log({piece})
+    console.log({emptyIndex})
+    if (emptyIndex === -1) {
+      [piece[emptyIndex], piece[flattenedPuzzle.length - 1]] = [
+        piece[flattenedPuzzle.length - 1],
+        piece[emptyIndex],
+      ];
+    }
+
     while (true) {
       // Fisher-Yates 알고리즘을 사용한 무작위 셔플
       for (let i = piece.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [piece[i], piece[j]] = [piece[j], piece[i]];
       }
-
-      // 공란과 마지막 블록 교환
-      const emptyIndex = piece.find((p) => p?.image === null || p === null)?.index || -1;
-      [piece[emptyIndex], piece[flattenedPuzzle.length - 1]] = [
-        piece[flattenedPuzzle.length - 1],
-        piece[emptyIndex],
-      ];
-
       // 인버전 개수 다시 계산
       inversions = 0;
       for (let i = 0; i < piece.length; i++) {
