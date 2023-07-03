@@ -53,7 +53,12 @@ const Puzzle: React.FC = () => {
   ]);
   const [blockWidth, setBlockWidth] = useState<number>(0);
   const [blockHeight, setBlockHeight] = useState<number>(0);
+  const [isChallengeStarted, setIsChallengeStarted] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
 
+  const startChallenge = () => {
+    setIsChallengeStarted(true);
+  };
   useEffect(() => {
     resetPuzzle();
   }, []);
@@ -62,6 +67,9 @@ const Puzzle: React.FC = () => {
     setPuzzleState(originalPuzzleState);
     //   setOriginalPuzzleState(initialState);
     setMoveCount(0);
+
+    setIsChallengeStarted(false);
+    setIsCompleted(false);
   };
 
   const shufflePuzzle = () => {
@@ -81,7 +89,7 @@ const Puzzle: React.FC = () => {
       }
 
       // 공란과 마지막 블록 교환
-      const emptyIndex =  piece.find((p) => p?.image === null)?.index || -1;
+      const emptyIndex = piece.find((p) => p?.image === null)?.index || -1;
       [piece[emptyIndex], piece[flattenedPuzzle.length - 1]] = [
         piece[flattenedPuzzle.length - 1],
         piece[emptyIndex],
@@ -89,15 +97,19 @@ const Puzzle: React.FC = () => {
 
       // 인버전 개수 다시 계산
       inversions = 0;
-      console.log({piece})
+      console.log({ piece });
       for (let i = 0; i < piece.length; i++) {
         for (let j = i + 1; j < piece.length; j++) {
-          if (piece[i]?.index && piece[j]?.index && piece[i]?.index > piece[j]?.index) {
+          if (
+            piece[i]?.index &&
+            piece[j]?.index &&
+            piece[i]?.index > piece[j]?.index
+          ) {
             inversions++;
           }
         }
       }
-      console.log({inversions})
+      console.log({ inversions });
       // 인버전 개수가 홀수인 경우에만 종료
       if (inversions % 2 === 1) {
         break;
@@ -115,6 +127,13 @@ const Puzzle: React.FC = () => {
     setPuzzleState(shuffledPuzzle);
     setOriginalPuzzleState(shuffledPuzzle);
     setMoveCount(0);
+
+    setIsCompleted(false);
+  };
+  const checkCompletion = (currentState: number[][]) => {
+    const isEqual =
+      JSON.stringify(currentState) === JSON.stringify(originalPuzzleState);
+    setIsCompleted(isEqual);
   };
 
   const handleImageUpload = async (
@@ -149,6 +168,8 @@ const Puzzle: React.FC = () => {
         );
         setPuzzleState(initialState);
         setMoveCount(0);
+
+        setIsCompleted(false);
       };
       reader.readAsDataURL(file);
     }
@@ -207,6 +228,7 @@ const Puzzle: React.FC = () => {
       newState[row][col] = null;
       setPuzzleState(newState);
       setMoveCount(moveCount + 1);
+      checkCompletion(newState);
     }
   };
 
@@ -258,9 +280,12 @@ const Puzzle: React.FC = () => {
           {renderPuzzle()}
           <button onClick={shufflePuzzle}>셔플</button>
           <button onClick={resetPuzzle}>리셋</button>
-          <input type="file" accept="image/*" onChange={handleImageUpload} />
+          <>{isCompleted ? <div>완료</div> : isMove && <div>도전 중...</div>}</>
         </>
       ) : (
+        <input type="file" accept="image/*" onChange={handleImageUpload} />
+      )}
+      {!isChallengeStarted && userImage && (
         <>
           <input type="file" accept="image/*" onChange={handleImageUpload} />
         </>
