@@ -45,7 +45,7 @@ const Puzzle: React.FC = () => {
   ]);
   const [moveCount, setMoveCount] = useState(0);
   const [userImage, setUserImage] = useState(null);
-
+  const [isMove, setIsMove] = useState(false)
   const [originalPuzzleState, setOriginalPuzzleState] = useState<
     number[][] | null
   >([
@@ -67,6 +67,7 @@ const Puzzle: React.FC = () => {
   };
 
   const shufflePuzzle = () => {
+    setIsMove(true)
     const flattenedPuzzle = puzzleState.flat();
     let inversions = 0;
     // 인버전 개수 계산
@@ -140,6 +141,7 @@ const Puzzle: React.FC = () => {
   const handleImageUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
+    setIsMove(false)
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -223,8 +225,7 @@ const Puzzle: React.FC = () => {
 
   const movePiece = (row: number, col: number) => {
     const { row: emptyRow, col: emptyCol } = findEmptyPiece();
-
-    if (canMovePiece(row, col)) {
+    if (isMove && canMovePiece(row, col)) {
       const newState = puzzleState.map((row) => [...row]);
       newState[emptyRow][emptyCol] = newState[row][col];
       newState[row][col] = null;
