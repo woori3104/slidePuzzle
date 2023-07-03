@@ -97,7 +97,6 @@ const Puzzle: React.FC = () => {
 
       // 인버전 개수 다시 계산
       inversions = 0;
-      console.log({ piece });
       for (let i = 0; i < piece.length; i++) {
         for (let j = i + 1; j < piece.length; j++) {
           if (
@@ -109,7 +108,6 @@ const Puzzle: React.FC = () => {
           }
         }
       }
-      console.log({ inversions });
       // 인버전 개수가 홀수인 경우에만 종료
       if (inversions % 2 === 1) {
         break;
