@@ -43,7 +43,7 @@ const Puzzle: React.FC = () => {
   ]);
   const [moveCount, setMoveCount] = useState(0);
   const [userImage, setUserImage] = useState(null);
-  const [isMove, setIsMove] = useState(false)
+  const [isMove, setIsMove] = useState(false);
   const [originalPuzzleState, setOriginalPuzzleState] = useState<
     number[][] | null
   >([
@@ -65,70 +65,51 @@ const Puzzle: React.FC = () => {
   };
 
   const shufflePuzzle = () => {
-    setIsMove(true)
+    setIsMove(true);
     const flattenedPuzzle = puzzleState.flat();
+    const piece = flattenedPuzzle.map((p, index) => ({
+      index: index,
+      image: p,
+    }));
     let inversions = 0;
-    // 인버전 개수 계산
-    for (let i = 0; i < flattenedPuzzle.length; i++) {
-      for (let j = i + 1; j < flattenedPuzzle.length; j++) {
-        if (
-          flattenedPuzzle[i] &&
-          flattenedPuzzle[j] &&
-          flattenedPuzzle[i] > flattenedPuzzle[j]
-        ) {
-          inversions++;
-        }
+
+    while (true) {
+      // Fisher-Yates 알고리즘을 사용한 무작위 셔플
+      for (let i = piece.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [piece[i], piece[j]] = [piece[j], piece[i]];
       }
-    }
 
-    // 인버전 개수가 홀수인 경우만 셔플 수행
-    if (inversions % 2 === 1) {
-      while (true) {
-        // Fisher-Yates 알고리즘을 사용한 무작위 셔플
-        for (let i = flattenedPuzzle.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [flattenedPuzzle[i], flattenedPuzzle[j]] = [
-            flattenedPuzzle[j],
-            flattenedPuzzle[i],
-          ];
-        }
+      // 공란과 마지막 블록 교환
+      const emptyIndex =  piece.find((p) => p?.image === null)?.index || -1;
+      [piece[emptyIndex], piece[flattenedPuzzle.length - 1]] = [
+        piece[flattenedPuzzle.length - 1],
+        piece[emptyIndex],
+      ];
 
-        // 공란과 마지막 블록 교환
-        const emptyIndex = flattenedPuzzle.indexOf(null);
-        [
-          flattenedPuzzle[emptyIndex],
-          flattenedPuzzle[flattenedPuzzle.length - 1],
-        ] = [
-          flattenedPuzzle[flattenedPuzzle.length - 1],
-          flattenedPuzzle[emptyIndex],
-        ];
-
-        // 인버전 개수 다시 계산
-        inversions = 0;
-        for (let i = 0; i < flattenedPuzzle.length; i++) {
-          for (let j = i + 1; j < flattenedPuzzle.length; j++) {
-            if (
-              flattenedPuzzle[i] &&
-              flattenedPuzzle[j] &&
-              flattenedPuzzle[i] > flattenedPuzzle[j]
-            ) {
-              inversions++;
-            }
+      // 인버전 개수 다시 계산
+      inversions = 0;
+      console.log({piece})
+      for (let i = 0; i < piece.length; i++) {
+        for (let j = i + 1; j < piece.length; j++) {
+          if (piece[i]?.index && piece[j]?.index && piece[i]?.index > piece[j]?.index) {
+            inversions++;
           }
         }
-
-        // 인버전 개수가 홀수인 경우에만 종료
-        if (inversions % 2 === 1) {
-          break;
-        }
+      }
+      console.log({inversions})
+      // 인버전 개수가 홀수인 경우에만 종료
+      if (inversions % 2 === 1) {
+        break;
       }
     }
 
+    const newArr = piece.map((p) => p?.image);
     // 셔플된 퍼즐 배열 반환
     const shuffledPuzzle = [
-      flattenedPuzzle.slice(0, 3),
-      flattenedPuzzle.slice(3, 6),
-      flattenedPuzzle.slice(6),
+      newArr.slice(0, 3),
+      newArr.slice(3, 6),
+      newArr.slice(6),
     ];
 
     setPuzzleState(shuffledPuzzle);
@@ -139,7 +120,7 @@ const Puzzle: React.FC = () => {
   const handleImageUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    setIsMove(false)
+    setIsMove(false);
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -150,7 +131,7 @@ const Puzzle: React.FC = () => {
           500
         );
         setUserImage(resizedImage);
-        
+
         const pieces = await splitImage(resizedImage);
         const initialState = pieces?.reduce(
           (state: number[][], piece: { index: number; dataUrl: string }) => {
@@ -205,13 +186,10 @@ const Puzzle: React.FC = () => {
 
             const pieceDataUrl = canvas.toDataURL();
             const pieceIndex = row * 3 + col + 1;
-            pieceIndex < 9 ?pieces.push({
+            pieces.push({
               index: pieceIndex,
               dataUrl: pieceDataUrl,
-            }) : pieces.push({
-              index: pieceIndex,
-              dataUrl: null,
-            })
+            });
           }
         }
         resolve(pieces);
