@@ -223,7 +223,8 @@ const Puzzle: React.FC = () => {
 
   const movePiece = (row: number, col: number) => {
     const { row: emptyRow, col: emptyCol } = findEmptyPiece();
-    if (isMove && canMovePiece(row, col) && emptyRow!==row && emptyCol!==col) {
+    console.log({emptyRow}, {emptyCol},{col},{row})
+    if (isMove && canMovePiece(row, col) && emptyRow!==row || emptyCol!==col) {
       const newState = puzzleState.map((row) => [...row]);
       newState[emptyRow][emptyCol] = newState[row][col];
       newState[row][col] = null;
