@@ -48,7 +48,11 @@ const Puzzle: React.FC = () => {
 
   const [originalPuzzleState, setOriginalPuzzleState] = useState<
     number[][] | null
-  >(null);
+  >([
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, null],
+  ]);
   const [blockWidth, setBlockWidth] = useState<number>(0);
   const [blockHeight, setBlockHeight] = useState<number>(0);
 
@@ -65,7 +69,6 @@ const Puzzle: React.FC = () => {
   const shufflePuzzle = () => {
     const flattenedPuzzle = puzzleState.flat();
     let inversions = 0;
-    flattenedPuzzle[8] = null;
     // 인버전 개수 계산
     for (let i = 0; i < flattenedPuzzle.length; i++) {
       for (let j = i + 1; j < flattenedPuzzle.length; j++) {
@@ -147,6 +150,7 @@ const Puzzle: React.FC = () => {
           500
         );
         setUserImage(resizedImage);
+        
         const pieces = await splitImage(resizedImage);
         const initialState = pieces?.reduce(
           (state: number[][], piece: { index: number; dataUrl: string }) => {
@@ -162,7 +166,6 @@ const Puzzle: React.FC = () => {
             [7, 8, null],
           ]
         );
-        console.log({initialState})
         setPuzzleState(initialState);
         setMoveCount(0);
       };
@@ -202,13 +205,15 @@ const Puzzle: React.FC = () => {
 
             const pieceDataUrl = canvas.toDataURL();
             const pieceIndex = row * 3 + col + 1;
-            pieces.push({
+            pieceIndex < 9 ?pieces.push({
               index: pieceIndex,
               dataUrl: pieceDataUrl,
-            });
+            }) : pieces.push({
+              index: pieceIndex,
+              dataUrl: null,
+            })
           }
         }
-
         resolve(pieces);
       };
 
