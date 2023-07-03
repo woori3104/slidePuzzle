@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useRecoilState } from "recoil";
 import styled from "styled-components";
-import { puzzleStateAtom, moveCountAtom, userImageAtom } from "../atom/atom";
 import { resizeImage } from "./util";
 
 const PuzzleContainer = styled.div`
