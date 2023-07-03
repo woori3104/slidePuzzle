@@ -82,8 +82,7 @@ const Puzzle: React.FC = () => {
     let inversions = 0;
 
     let emptyIndex = piece.findIndex((p) => p?.image === undefined || p === undefined);
-    console.log({piece})
-    console.log({emptyIndex})
+
     if (emptyIndex === -1) {
       [piece[emptyIndex], piece[flattenedPuzzle.length - 1]] = [
         piece[flattenedPuzzle.length - 1],
