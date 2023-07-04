@@ -41,6 +41,11 @@ const Puzzle: React.FC = () => {
     [4, 5, 6],
     [7, 8, null],
   ]);
+  const [initialState, setInitialState] = useState([
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, null],
+  ]);
   const [moveCount, setMoveCount] = useState(0);
   const [userImage, setUserImage] = useState(null);
   const [isMove, setIsMove] = useState(false);
@@ -74,16 +79,19 @@ const Puzzle: React.FC = () => {
 
   const shufflePuzzle = () => {
     setIsMove(true);
-    const flattenedPuzzle = puzzleState.flat();
+    const flattenedPuzzle = initialState.flat();
     const piece = flattenedPuzzle.map((p, index) => ({
       index: index,
       image: p,
     }));
     let inversions = 0;
 
-    let emptyIndex = piece.findIndex((p) => p?.image === undefined || p === undefined);
-
-    if (emptyIndex === -1) {
+    let emptyIndex = piece.findIndex(
+      (p) => p?.image === undefined || p === undefined
+    );
+    if (emptyIndex === -1 && moveCount === 0) {
+    }
+    {
       [piece[emptyIndex], piece[flattenedPuzzle.length - 1]] = [
         piece[flattenedPuzzle.length - 1],
         piece[emptyIndex],
@@ -125,13 +133,14 @@ const Puzzle: React.FC = () => {
 
     setPuzzleState(shuffledPuzzle);
     setOriginalPuzzleState(shuffledPuzzle);
+    
     setMoveCount(0);
 
     setIsCompleted(false);
   };
   const checkCompletion = (currentState: number[][]) => {
     const isEqual =
-      JSON.stringify(currentState) === JSON.stringify(originalPuzzleState);
+      JSON.stringify(currentState.slice(0,8)) === JSON.stringify(initialState.slice(0,8));
     setIsCompleted(isEqual);
   };
 
@@ -151,7 +160,7 @@ const Puzzle: React.FC = () => {
         setUserImage(resizedImage);
 
         const pieces = await splitImage(resizedImage);
-        const initialState = pieces?.reduce(
+        const initialValue = pieces?.reduce(
           (state: number[][], piece: { index: number; dataUrl: string }) => {
             const { index, dataUrl } = piece;
             const row = Math.floor((index - 1) / 3);
@@ -165,12 +174,13 @@ const Puzzle: React.FC = () => {
             [7, 8, null],
           ]
         );
-        setPuzzleState(initialState);
+        setPuzzleState(initialValue);
         setMoveCount(0);
 
-        setOriginalPuzzleState(initialState);
-
+        setOriginalPuzzleState(initialValue);
+        setInitialState(initialValue)
         setIsCompleted(false);
+        console.log({initialValue})
       };
       reader.readAsDataURL(file);
     }
@@ -223,13 +233,17 @@ const Puzzle: React.FC = () => {
 
   const movePiece = (row: number, col: number) => {
     const { row: emptyRow, col: emptyCol } = findEmptyPiece();
-    console.log({emptyRow}, {emptyCol},{col},{row})
-    if (isMove && canMovePiece(row, col) && (emptyRow!==row || emptyCol!==col)) {
+    if (
+      isMove &&
+      canMovePiece(row, col) &&
+      (emptyRow !== row || emptyCol !== col) &&
+      !isCompleted
+    ) {
       const newState = puzzleState.map((row) => [...row]);
       newState[emptyRow][emptyCol] = newState[row][col];
       newState[row][col] = null;
       setPuzzleState(newState);
-      setMoveCount(moveCount + 1);ß
+      setMoveCount(moveCount + 1);
       checkCompletion(newState);
     }
   };
@@ -277,6 +291,8 @@ const Puzzle: React.FC = () => {
   return (
     <PuzzleContainer>
       <div>이동 횟수: {moveCount}</div>
+
+      {!userImage && <div>이미지를 선택해주세요</div>}
       {userImage ? (
         <>
           {renderPuzzle()}
