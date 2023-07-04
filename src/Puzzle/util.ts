@@ -79,3 +79,29 @@ export const shuffleImage = (flattenedPuzzle:(number | null)[]) => {
   ];
   return shuffledPuzzle
 }
+
+export const checkCompletion = (currentState: (number|null)[][], initialState:(number|null)[][]) => {
+  const currentPuzzle = currentState.flat().slice(0, -1)
+  const initialPuzzle = initialState.flat().slice(0, -1)
+  const isEqual =
+    JSON.stringify(currentPuzzle) === JSON.stringify(initialPuzzle);
+  return isEqual
+};
+
+export const findEmptyPiece = (puzzleState:(number | null)[][]) => {
+  for (let i = 0; i < puzzleState?.length; i++) {
+    for (let j = 0; j < puzzleState[i].length; j++) {
+      if (puzzleState[i][j] === null || puzzleState[i][j] === undefined) {
+        return { row: i, col: j };
+      }
+    }
+  }
+  return { row: -1, col: -1 };
+};
+export const canMovePiece = (row: number, col: number, puzzleState:(number | null)[][]) => {
+  const { row: emptyRow, col: emptyCol } = findEmptyPiece(puzzleState);
+  return (
+    (row === emptyRow && Math.abs(col - emptyCol) === 1) ||
+    (col === emptyCol && Math.abs(row - emptyRow) === 1)
+  );
+};

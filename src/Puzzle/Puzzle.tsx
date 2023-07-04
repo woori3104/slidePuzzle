@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import { resizeImage, shuffleImage } from "./util";
+import { canMovePiece, checkCompletion, findEmptyPiece, resizeImage, shuffleImage } from "./util";
 
 const PuzzleContainer = styled.div`
   display: flex;
@@ -85,15 +85,6 @@ const Puzzle: React.FC = () => {
     setOriginalPuzzleState(shuffledPuzzle);
     setMoveCount(0);
     setIsCompleted(false);
-  };
-  const checkCompletion = (currentState: number[][]) => {
-    const currentPuzzle = currentState.flat().slice(0, -1)
-    const initialPuzzle = initialState.flat().slice(0, -1)
-    console.log({currentPuzzle})
-    console.log({initialPuzzle})
-    const isEqual =
-      JSON.stringify(currentPuzzle) === JSON.stringify(initialPuzzle);
-    setIsCompleted(isEqual);
   };
 
   const handleImageUpload = async (
@@ -184,10 +175,10 @@ const Puzzle: React.FC = () => {
   };
 
   const movePiece = (row: number, col: number) => {
-    const { row: emptyRow, col: emptyCol } = findEmptyPiece();
+    const { row: emptyRow, col: emptyCol } = findEmptyPiece(puzzleState);
     if (
       isMove &&
-      canMovePiece(row, col) &&
+      canMovePiece(row, col, puzzleState) &&
       (emptyRow !== row || emptyCol !== col) &&
       !isCompleted
     ) {
@@ -196,27 +187,10 @@ const Puzzle: React.FC = () => {
       newState[row][col] = null;
       setPuzzleState(newState);
       setMoveCount(moveCount + 1);
-      checkCompletion(newState);
+      // 
+      const isEqual = checkCompletion(newState, initialState);
+      setIsCompleted(isEqual);
     }
-  };
-
-  const findEmptyPiece = () => {
-    for (let i = 0; i < puzzleState.length; i++) {
-      for (let j = 0; j < puzzleState[i].length; j++) {
-        if (puzzleState[i][j] === null || puzzleState[i][j] === undefined) {
-          return { row: i, col: j };
-        }
-      }
-    }
-    return { row: -1, col: -1 };
-  };
-
-  const canMovePiece = (row: number, col: number) => {
-    const { row: emptyRow, col: emptyCol } = findEmptyPiece();
-    return (
-      (row === emptyRow && Math.abs(col - emptyCol) === 1) ||
-      (col === emptyCol && Math.abs(row - emptyRow) === 1)
-    );
   };
 
   const renderPuzzle = () => {
