@@ -139,8 +139,12 @@ const Puzzle: React.FC = () => {
     setIsCompleted(false);
   };
   const checkCompletion = (currentState: number[][]) => {
+    const currentPuzzle = currentState.flat().slice(0, -1)
+    const initialPuzzle = initialState.flat().slice(0, -1)
+    console.log({currentPuzzle})
+    console.log({initialPuzzle})
     const isEqual =
-      JSON.stringify(currentState.slice(0,8)) === JSON.stringify(initialState.slice(0,8));
+      JSON.stringify(currentPuzzle) === JSON.stringify(initialPuzzle);
     setIsCompleted(isEqual);
   };
 
