@@ -26,7 +26,7 @@ export const resizeImage = (image: string | ArrayBuffer | null, maxWidth: number
   });
 };
 
-export const shuffleImage = (flattenedPuzzle:(number | null)[]) => {
+export const shuffleImage = (flattenedPuzzle:(number|null|string)[]) => {
   const piece = flattenedPuzzle.map((p, index) => ({
     index: index,
     image: p,
@@ -80,7 +80,7 @@ export const shuffleImage = (flattenedPuzzle:(number | null)[]) => {
   return shuffledPuzzle
 }
 
-export const checkCompletion = (currentState: (number|null)[][], initialState:(number|null)[][]) => {
+export const checkCompletion = (currentState: (number|null|string)[][], initialState:(number|null|string)[][]) => {
   const currentPuzzle = currentState.flat().slice(0, -1)
   const initialPuzzle = initialState.flat().slice(0, -1)
   const isEqual =
@@ -88,7 +88,7 @@ export const checkCompletion = (currentState: (number|null)[][], initialState:(n
   return isEqual
 };
 
-export const findEmptyPiece = (puzzleState:(number | null)[][]) => {
+export const findEmptyPiece = (puzzleState:(number | null|string)[][]) => {
   for (let i = 0; i < puzzleState?.length; i++) {
     for (let j = 0; j < puzzleState[i].length; j++) {
       if (puzzleState[i][j] === null || puzzleState[i][j] === undefined) {
@@ -98,7 +98,7 @@ export const findEmptyPiece = (puzzleState:(number | null)[][]) => {
   }
   return { row: -1, col: -1 };
 };
-export const canMovePiece = (row: number, col: number, puzzleState:(number | null)[][]) => {
+export const canMovePiece = (row: number, col: number, puzzleState:(number | null|string)[][]) => {
   const { row: emptyRow, col: emptyCol } = findEmptyPiece(puzzleState);
   return (
     (row === emptyRow && Math.abs(col - emptyCol) === 1) ||

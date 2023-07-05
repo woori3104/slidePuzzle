@@ -1,13 +1,24 @@
 import React from "react";
 import styled from "styled-components";
-import { useRecoilState, useRecoilValue } from "recoil";
+import { useRecoilState } from "recoil";
 import {
-  isMoveState,
+  blockHeightAtom,
+  blockWidthAtom,
+  initialStateAtom,
+  isCompletedAtom,
+  isMoveAtom,
   moveCountAtom,
-  originalPuzzleStateSelector,
+  puzzleStateAtom,
 } from "../atom/atom";
+import { findEmptyPiece, canMovePiece, checkCompletion } from "./util";
 
-const Piece = styled.div`
+interface PuzzlePieceCssProps {
+  width: number;
+  height: number;
+  canMove: boolean;
+}
+
+const Piece = styled.div<PuzzlePieceCssProps>`
   width: ${({ width }) => width}px;
   height: ${({ height }) => height}px;
   border: 1px solid black;
@@ -25,71 +36,49 @@ const Piece = styled.div`
 `;
 
 interface PuzzlePieceProps {
-  width: number;
-  height: number;
-  canMove: boolean;
-  piece: number;
+  rowIndex: number;
+  colIndex: number;
+  piece:string|number|null
 }
 
-const PuzzlePiece: React.FC<PuzzlePieceProps> = ({
-  width,
-  height,
-  canMove,
-  piece,
-}) => {
+const PuzzlePiece: React.FC<PuzzlePieceProps> = ({rowIndex, colIndex, piece}) => {
   const [puzzleState, setPuzzleState] = useRecoilState(puzzleStateAtom);
-  const isMove = useRecoilValue(isMoveState);
+  const [initialState, ] = useRecoilState(initialStateAtom);
   const [moveCount, setMoveCount] = useRecoilState(moveCountAtom);
-  const originalPuzzleState = useRecoilValue(originalPuzzleStateSelector);
-
-  const findEmptyPiece = () => {
-    for (let i = 0; i < puzzleState.length; i++) {
-      for (let j = 0; j < puzzleState[i].length; j++) {
-        if (puzzleState[i][j] === null || puzzleState[i][j] === undefined) {
-          return { row: i, col: j };
-        }
-      }
-    }
-    return { row: -1, col: -1 };
-  };
-
-  const canMovePiece = (row: number, col: number) => {
-    const { row: emptyRow, col: emptyCol } = findEmptyPiece();
-    return (
-      (row === emptyRow && Math.abs(col - emptyCol) === 1) ||
-      (col === emptyCol && Math.abs(row - emptyRow) === 1)
-    );
-  };
-
-
-  const checkCompletion = (currentState: number[][]) => {
-    const isEqual =
-      JSON.stringify(currentState) === JSON.stringify(originalPuzzleState);
-    setIsCompleted(isEqual);
-  };
-
+  const [isMove, ] = useRecoilState(isMoveAtom);
+  const [blockWidth, ] = useRecoilState(blockWidthAtom);
+  const [blockHeight, ] = useRecoilState(blockHeightAtom);
+  const [isCompleted, setIsCompleted] = useRecoilState(isCompletedAtom);
+  
 
   const movePiece = (row: number, col: number) => {
-    const { row: emptyRow, col: emptyCol } = findEmptyPiece();
-    console.log({emptyRow}, {emptyCol},{col},{row})
-    if (isMove && canMovePiece(row, col) && (emptyRow!==row || emptyCol!==col)) {
+    const { row: emptyRow, col: emptyCol } = findEmptyPiece(puzzleState);
+    console.log({isMove})
+    console.log({row},{col},{ emptyRow},{emptyCol})
+    if (
+      isMove &&
+      canMovePiece(row, col, puzzleState) &&
+      (emptyRow !== row || emptyCol !== col) &&
+      !isCompleted
+    ) {
       const newState = puzzleState.map((row) => [...row]);
       newState[emptyRow][emptyCol] = newState[row][col];
       newState[row][col] = null;
       setPuzzleState(newState);
-      setMoveCount(moveCount + 1);ß
-      checkCompletion(newState);
+      setMoveCount(moveCount + 1);
+      const isEqual = checkCompletion(newState, initialState);
+      setIsCompleted(isEqual);
     }
   };
 
   return (
     <Piece
-      width={width}
-      height={height}
-      canMove={canMove}
-      onClick={movePiece}
+      width={blockWidth}
+      height={blockHeight} 
+      canMove={canMovePiece(rowIndex, colIndex, puzzleState)}
+      onClick={() => movePiece(rowIndex, colIndex)}
     >
-      {piece && <img src={piece} alt={`Piece ${piece}`} />}
+      {piece && <img src={piece as string} alt={`Piece ${piece}`} />}
     </Piece>
   );
 };

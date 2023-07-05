@@ -3,14 +3,21 @@ import styled from "styled-components";
 import { useRecoilState, useRecoilValue } from "recoil";
 
 import {
-  isCompletedState,
-  isMoveState,
+  blockHeightAtom,
+  blockWidthAtom,
+  initialStateAtom,
+  isChallengeStartedAtom,
+  isCompletedAtom,
+  isMoveAtom,
   moveCountAtom,
-  originalPuzzleStateSelector,
+  originalPuzzleStateAtom,
   puzzleStateAtom,
+  userImageAtom,
 } from "../atom/atom";
-import { resizeImage, shuffledImage } from "./util";
-import { RenderPuzzle } from "./RenderPuzzle";
+import { canMovePiece, checkCompletion, findEmptyPiece, resizeImage, shuffleImage } from "./util";
+import RenderPuzzle from "./RenderPuzzle";
+
+
 
 const Container = styled.div`
   display: flex;
@@ -26,28 +33,33 @@ const UploadButton = styled.input`
 `;
 
 
-const PuzzleContainer: React.FC = () => {
+export const PuzzleContainer: React.FC = () => {
+
   const [puzzleState, setPuzzleState] = useRecoilState(puzzleStateAtom);
+  const [initialState, setInitialState] = useRecoilState(initialStateAtom);
   const [moveCount, setMoveCount] = useRecoilState(moveCountAtom);
- const [isCompleted, setIsCompleted] = useRecoilState(isCompletedState);
-  const [, setIsMove] = useRecoilState(isMoveState);
-  const [blockWidth, setBlockWidth] = useState<number>(0);
-  const [blockHeight, setBlockHeight] = useState<number>(0);
-  const [isChallengeStarted, setIsChallengeStarted] = useState(false);
-  const [originalPuzzleState, setOriginalPuzzleState] = useState(originalPuzzleStateSelector);
-
-
-  const [userImage, setUserImage] = useState(null);
-  const shufflePuzzle = () => {
-    const shuffledPuzzle = shuffledImage(puzzleState);
-    setIsMove(true);
-    setPuzzleState(shuffledPuzzle);
-    setMoveCount(0);
-    setIsCompleted(false);
-  };
+  const [userImage, setUserImage] = useRecoilState(userImageAtom);
+  const [isMove, setIsMove] = useRecoilState(isMoveAtom);
+  const [originalPuzzleState, setOriginalPuzzleState] = useRecoilState(originalPuzzleStateAtom);
+  const [blockWidth, setBlockWidth] = useRecoilState(blockWidthAtom);
+  const [blockHeight, setBlockHeight] = useRecoilState(blockHeightAtom);
+  const [isChallengeStarted, setIsChallengeStarted] = useRecoilState(isChallengeStartedAtom);
+  const [isCompleted, setIsCompleted] = useRecoilState(isCompletedAtom);
+  
 
   const resetPuzzle = () => {
     setPuzzleState(originalPuzzleState);
+    setMoveCount(0);
+    setIsChallengeStarted(false);
+    setIsCompleted(false);
+  };
+
+  const shufflePuzzle = () => {
+    setIsMove(true);
+    const flattenedPuzzle = initialState.flat();
+    const shuffledPuzzle = shuffleImage(flattenedPuzzle);
+    setPuzzleState(shuffledPuzzle);
+    setOriginalPuzzleState(shuffledPuzzle);
     setMoveCount(0);
     setIsCompleted(false);
   };
@@ -55,6 +67,7 @@ const PuzzleContainer: React.FC = () => {
   const handleImageUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
+    setIsMove(false);
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
@@ -64,11 +77,14 @@ const PuzzleContainer: React.FC = () => {
           500,
           500
         );
-        setUserImage(resizedImage);
+        setUserImage(resizedImage as React.SetStateAction<null>);
 
         const pieces = await splitImage(resizedImage);
-        const initialState = pieces?.reduce(
-          (state: (number|null)[][], piece?: { index: number, dataUrl?: string}) => {
+        const initialValue = pieces?.reduce(
+          (
+            state: (number | null | string)[][],
+            piece: { index: number; dataUrl: string }
+          ) => {
             const { index, dataUrl } = piece;
             const row = Math.floor((index - 1) / 3);
             const col = (index - 1) % 3;
@@ -81,15 +97,18 @@ const PuzzleContainer: React.FC = () => {
             [7, 8, null],
           ]
         );
-        setPuzzleState(initialState);
+        setPuzzleState(initialValue);
         setMoveCount(0);
-        setOriginalPuzzleState(initialState);
 
+        setOriginalPuzzleState(initialValue);
+        setInitialState(initialValue);
         setIsCompleted(false);
       };
+
       reader.readAsDataURL(file);
     }
   };
+
   const splitImage = async (image: string | null) => {
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("2d");
@@ -134,24 +153,25 @@ const PuzzleContainer: React.FC = () => {
       imageObj.src = image as string;
     });
   };
+
+
   return (
     <Container>
-      <div>이동 횟수: {moveCount}</div>
-      {puzzleState ? (
+      {!userImage && <div>이미지를 선택해주세요</div>}
+      {userImage ? (
         <>
-          {puzzleState.map((row, rowIndex) => (
-            <PuzzleRow key={rowIndex} row={row} />
-          ))}
+          <RenderPuzzle/>
           <button onClick={shufflePuzzle}>셔플</button>
           <button onClick={resetPuzzle}>리셋</button>
-          {isCompleted ? <div>완료</div> : isMove && <div>도전 중...</div>}
+          <>{isCompleted ? <div>완료</div> : isMove && <div>도전 중...</div>}</>
         </>
       ) : (
-        <UploadButton
-          type="file"
-          accept="image/*"
-          onChange={handleImageUpload}
-        />
+        <input type="file" accept="image/*" onChange={handleImageUpload} />
+      )}
+      {!isChallengeStarted && userImage && (
+        <>
+          <input type="file" accept="image/*" onChange={handleImageUpload} />
+        </>
       )}
     </Container>
   );

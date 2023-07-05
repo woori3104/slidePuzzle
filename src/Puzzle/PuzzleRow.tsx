@@ -7,14 +7,16 @@ const Row = styled.div`
 `;
 
 interface PuzzleRowProps {
-  row: (number | null)[];
+  row: (number | null | string)[];
+  rowIndex:number
 }
 
-const PuzzleRow: React.FC<PuzzleRowProps> = ({ row }) => {
+const PuzzleRow: React.FC<PuzzleRowProps> = ({ row, rowIndex }) => {
+  console.log({row})
   return (
     <Row>
-      {row.map((piece, colIndex) => (
-        <PuzzlePiece key={colIndex} piece={piece} />
+      {row.map((piece, index) => (
+        <PuzzlePiece key={index} piece={piece} colIndex={index} rowIndex={rowIndex} />
       ))}
     </Row>
   );
