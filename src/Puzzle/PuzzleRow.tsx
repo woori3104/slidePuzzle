@@ -12,7 +12,6 @@ interface PuzzleRowProps {
 }
 
 const PuzzleRow: React.FC<PuzzleRowProps> = ({ row, rowIndex }) => {
-  console.log({row})
   return (
     <Row>
       {row.map((piece, index) => (

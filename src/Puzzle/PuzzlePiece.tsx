@@ -53,8 +53,6 @@ const PuzzlePiece: React.FC<PuzzlePieceProps> = ({rowIndex, colIndex, piece}) =>
 
   const movePiece = (row: number, col: number) => {
     const { row: emptyRow, col: emptyCol } = findEmptyPiece(puzzleState);
-    console.log({isMove})
-    console.log({row},{col},{ emptyRow},{emptyCol})
     if (
       isMove &&
       canMovePiece(row, col, puzzleState) &&
