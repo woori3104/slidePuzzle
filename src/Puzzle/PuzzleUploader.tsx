@@ -28,21 +28,20 @@ const PuzzleUploader: React.FC = () => {
   const [, setBlockHeight] = useRecoilState(blockHeightAtom);
 
   const [, setIsCompleted] = useRecoilState(isCompletedAtom);
-
-  const splitImage = async (image: string | null) => {
+  const splitImage = async (image) => {
     const canvas = document.createElement("canvas");
     const context = canvas.getContext("2d");
     const imageObj = new Image();
-
-    return new Promise<{ index: number; dataUrl: string }[]>((resolve) => {
+  
+    return new Promise((resolve) => {
       imageObj.onload = () => {
         const pieceWidth = imageObj.width / 3;
         const pieceHeight = imageObj.height / 3;
         setBlockWidth(pieceWidth);
         setBlockHeight(pieceHeight);
-
-        const pieces: { index: number; dataUrl: string }[] = [];
-
+  
+        const pieces = [];
+  
         for (let row = 0; row < 3; row++) {
           for (let col = 0; col < 3; col++) {
             canvas.width = pieceWidth;
@@ -58,7 +57,7 @@ const PuzzleUploader: React.FC = () => {
               pieceWidth,
               pieceHeight
             );
-
+  
             const pieceDataUrl = canvas.toDataURL();
             const pieceIndex = row * 3 + col + 1;
             pieces.push({
@@ -69,30 +68,24 @@ const PuzzleUploader: React.FC = () => {
         }
         resolve(pieces);
       };
-
-      imageObj.src = image as string;
+  
+      imageObj.src = image;
     });
   };
-
-  const handleImageUpload = async (
-    event: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  
+  const handleImageUpload = async (event) => {
     const file = event.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = async () => {
-        const resizedImage = await resizeImage(
-          reader.result as string,
-          500,
-          500
-        );
-        setUserImage(resizedImage as React.SetStateAction<null>);
-
+        const resizedImage = await resizeImage(reader.result, 500, 500);
+        setUserImage(resizedImage);
+  
         const pieces = await splitImage(resizedImage);
         const initialValue = pieces?.reduce(
           (
-            state: (number | null | string)[][],
-            piece: { index: number; dataUrl: string }
+            state,
+            piece
           ) => {
             const { index, dataUrl } = piece;
             const row = Math.floor((index - 1) / 3);
@@ -108,16 +101,16 @@ const PuzzleUploader: React.FC = () => {
         );
         setPuzzleState(initialValue);
         setMoveCount(0);
-
+  
         setOriginalPuzzleState(initialValue);
         setInitialState(initialValue);
         setIsCompleted(false);
       };
-
+  
       reader.readAsDataURL(file);
     }
   };
-
+  
   return (
     <>
       {!userImage && <div>이미지를 선택해주세요</div>}

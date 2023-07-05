@@ -17,7 +17,7 @@ const Button = styled.button`
 
 const PuzzleControls: React.FC = () => {
   const [, setPuzzleState] = useRecoilState(puzzleStateAtom);
-  const [moveCount, setMoveCount] = useRecoilState(moveCountAtom);
+  const [, setMoveCount] = useRecoilState(moveCountAtom);
   const [originalPuzzleState, ] = useRecoilState(
     originalPuzzleStateAtom
   );
